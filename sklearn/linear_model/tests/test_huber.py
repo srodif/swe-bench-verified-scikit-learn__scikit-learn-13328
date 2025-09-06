@@ -199,3 +199,26 @@ def test_huber_better_r2_score():
 
     # The huber model should also fit poorly on the outliers.
     assert_greater(ridge_outlier_score, huber_outlier_score)
+
+
+def test_huber_boolean():
+    # Test that HuberRegressor works with boolean input data
+    X, y = make_regression_with_outliers(n_samples=10, n_features=4)
+    X_bool = X > 0
+    
+    # HuberRegressor should work with boolean input
+    huber = HuberRegressor(fit_intercept=True, alpha=0.01, max_iter=100)
+    huber.fit(X_bool, y)
+    
+    # Should be able to predict
+    pred = huber.predict(X_bool)
+    assert pred.shape == y.shape
+    
+    # Results should be similar to manually converted data
+    X_bool_as_float = X_bool.astype(np.float64)
+    huber2 = HuberRegressor(fit_intercept=True, alpha=0.01, max_iter=100)
+    huber2.fit(X_bool_as_float, y)
+    
+    # Coefficients should be very close
+    assert_array_almost_equal(huber.coef_, huber2.coef_, decimal=10)
+    assert_almost_equal(huber.intercept_, huber2.intercept_, decimal=10)
